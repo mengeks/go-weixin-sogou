@@ -4,5 +4,5 @@
 html/
 cmd/wxsg-go/wxsg-go
 cmd/scrape/scrape
-scrape
+/scrape
 ConnectEd_articles.xlsx

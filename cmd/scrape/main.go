@@ -54,7 +54,13 @@ func main() {
 	refresh := flag.Bool("refresh", false, "只追加最新文章，跳过 Excel 中已有的条目")
 	maxPages := flag.Int("pages", 10, "每个搜索词最多翻页数")
 	out := flag.String("out", outputFile, "输出 Excel 文件路径")
+	debug := flag.Bool("debug", false, "打印所有搜索结果（不过滤公众号名），用于排查账号名")
 	flag.Parse()
+
+	if *debug {
+		runDebug(*maxPages)
+		return
+	}
 
 	existingURLs := map[string]bool{}
 	if *refresh {
@@ -89,6 +95,39 @@ func main() {
 	}
 	fmt.Printf("完成！招聘相关文章: %d 篇 / 全部新增: %d 篇\n", jobCount, len(newRecords))
 	fmt.Printf("文件已保存: %s\n", *out)
+}
+
+// runDebug prints raw Sogou results without any account-name filter.
+func runDebug(maxPages int) {
+	queries := []string{targetAccount, targetAccount + " 招聘", targetAccount + " PhD"}
+	for _, query := range queries {
+		fmt.Printf("\n=== 搜索: %q ===\n", query)
+		for page := 1; page <= maxPages; page++ {
+			results, err := wxsg.SearchArticle(query, page)
+			if err != nil {
+				fmt.Printf("  第 %d 页: 错误 %v\n", page, err)
+				break
+			}
+			if len(results) == 0 {
+				fmt.Printf("  第 %d 页: 无结果\n", page)
+				break
+			}
+			for _, r := range results {
+				fmt.Printf("  AccName=%q  Title=%q\n", r.AccName, r.Title)
+			}
+			break // only page 1 in debug mode
+		}
+	}
+
+	fmt.Println("\n=== SearchAccount ===")
+	accounts, err := wxsg.SearchAccount(targetAccount, 1)
+	if err != nil {
+		fmt.Printf("  错误: %v\n", err)
+		return
+	}
+	for _, a := range accounts {
+		fmt.Printf("  Name=%q  WeixinID=%q  Latest=%q\n", a.Name, a.WeixinID, a.LatestArticleTitle)
+	}
 }
 
 // collectArticles queries Sogou across multiple search terms and deduplicates by URL.
