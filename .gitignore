@@ -3,3 +3,5 @@
 
 html/
 cmd/wxsg-go/wxsg-go
+cmd/scrape/scrape
+ConnectEd_articles.xlsx
