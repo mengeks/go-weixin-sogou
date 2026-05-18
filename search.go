@@ -131,17 +131,16 @@ func (c Client) SearchArticle(query string, page int) (results []ArticleInfo, er
 
 	resultsSele.Each(func(i int, s *goquery.Selection) {
 		titleSele := s.Find("div.txt-box > h3 > a")
-		accountSele := s.Find("div.txt-box > div > a")
 		result := ArticleInfo{
 			Title:   titleSele.Text(),
 			Preview: s.Find("div.txt-box > p").Text(),
-			AccName: accountSele.Text(),
+			AccName: s.Find("div.s-p > span.all-time-y2").Text(),
 		}
 
 		if href, ok := titleSele.Attr("href"); ok {
 			result.Url = WeixinSogouUrl + href
 		}
-		if href, ok := accountSele.Attr("href"); ok {
+		if href, ok := s.Find("div.txt-box > div > a").Attr("href"); ok {
 			result.AccUrl = WeixinSogouUrl + href
 		}
 		if ret := pubTimeScript.FindStringSubmatch(s.Find("div.txt-box > div > span > script").Text()); len(ret) == 2 {
